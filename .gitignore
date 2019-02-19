@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+.DS_Store
+.vscode
+env/
+package/
+skedder/tmp/token.pickle
+skedder/credentials.json
+skedder/config/config.json
