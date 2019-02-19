@@ -13,4 +13,3 @@ package/
 skedder/tmp/token.pickle
 skedder/credentials.json
 skedder/config/config.json
-Makefile
