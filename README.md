@@ -16,4 +16,4 @@ Place teams you want to track in `skedder/config/config.json`, along with their 
 }]
 ```
 
-From there, run `make build` from the (home) directory that contains the `Makefile`. 
+From there, run `make build` from the (home) directory that contains the `Makefile`. This packs the project with its dependencies into a zip which can be uploaded to a service like Amazon Lambda.

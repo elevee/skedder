@@ -15,7 +15,7 @@ import arrow #for DST
 
 #load gcal in and make it available
 service = main({
-    "production": True
+    # "production": True
 })
 
 calendars = ConfigLoader().config() #load in team calendars
