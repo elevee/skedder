@@ -4,81 +4,15 @@ import requests
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
-from gcal import main
+# from gcal import main
+import utilities as utils
 from datetime import datetime, timedelta
 import dateutil.parser as parser
 from pprint import pprint
-import arrow #for DST
 
-# import sys
-# sys.exit('exiting early')
-
-#load gcal in and make it available
-service = main({
-    # "production": True
-})
+import sys
 
 calendars = ConfigLoader().config() #load in team calendars
-
-def rfcify(date, time=None): #converts dates from '%m-%d-%Y' [HH:MM:SS] to rfc format
-    dst = arrow.get(date, "MM-DD-YYYY").to('US/Pacific').dst()
-    offset = "-07:00" if dst.seconds > 0 else "-08:00"
-    if time: # date & time
-        return parser.parse(f"{date} {time}").isoformat() + offset
-    else: # date only
-        return datetime.strptime(date, '%m-%d-%Y').isoformat() + offset
-
-
-def add_hours(start, hours=2):
-    return (parser.parse(start) + timedelta(hours=hours)).isoformat()
-
-def location_case(location):
-    return location if location == "NHL" else location.title()
-
-def game_already_on_date(game, calId):
-    # print("game date? ", game['date'])
-    min_date = rfcify(game['date']) # timeMin needs to be a RFC3339 timestamp
-    max_date = add_hours(min_date, 24)
-    try:
-        result = service.events().list(calendarId=calId, timeMin=min_date, timeMax=max_date).execute()
-        # print(f"length of items {len(result['items'])}")
-        return result['items'][0] if result and len(result['items']) > 0 else None
-    except Exception as exception:
-        print("game_already_on_date:  Error checking if game already on date", exception)
-        pass
-
-def matchup_format(away, home):
-    return f"{away} @ {home}"
-
-def add_game(game, calId):
-    start_time = rfcify(game['date'], game['time'])
-    tz = 'America/Los_Angeles'
-    event = {
-        'summary': matchup_format(game['away'], game['home']),
-        'location': location_case(game['location']),
-        'start': {
-            'dateTime': start_time,
-            'timeZone': tz,
-        },
-        'end': {
-            'dateTime': add_hours(start_time),
-            'timeZone': tz,
-        }
-    }
-    print(f"Adding {event['summary']}")
-    try:
-        return service.events().insert(calendarId=calId, body=event).execute()
-    except:
-        print('Error removing game', game['id'], matchup_format(game['away'], game['home']))
-        return False
-
-def remove_game(game, calId):
-    try:
-        print(f"Removing {game['id']} - {game['summary']}...")
-        if service.events().delete(calendarId=calId, eventId=game['id']).execute() == '': return True
-    except:
-        print('Error removing game', game['id'], matchup_format(game['away'], game['home']))
-        return False
 
 def parse_games(url):
     # print(calendar['url'])
@@ -124,36 +58,45 @@ def parse_games(url):
 
 
 def lambda_handler(event, context):
-    for calendar in calendars:
-        games = parse_games(calendar['url'])
-        pprint(games)
-        for game in games: # For each (remaining) game:
-            # print(f"{game['away']} at {game['home']} already on cal? ", "Yes" if game_already_on_date(game, calendar['gcal_id']) else "No") # check calendar for existing event for that team on that day
+    if utils.service:
+        for calendar in calendars:
+            games = parse_games(calendar['url'])
+            pprint(games)
+            for game in games: # For each (remaining) game:
+                # print(f"{game['away']} at {game['home']} already on cal? ", "Yes" if game_already_on_date(game, calendar['gcal_id']) else "No") # check calendar for existing event for that team on that day
+                
+                existing_game = utils.game_already_on_date(game, calendar['gcal_id'])
             
-            existing_game = game_already_on_date(game, calendar['gcal_id'])
-        
-            #cleanup events
-            minDate = rfcify(game['date'])
-            maxDate = add_hours(minDate, 24)
-            resp = service.events().list(calendarId=calendar['gcal_id'], timeMin=minDate, timeMax=maxDate).execute()
-            if resp['items'] and len(resp['items']) == 2:
-            #     print(f"Duplicates on {minDate}!")
-                for itm in resp['items']:
-                    remove_game(itm, calendar['gcal_id']) 
+                #cleanup events
+                minDate = utils.rfcify(game['date'])
+                maxDate = utils.add_hours(minDate, 24)
+                resp = utils.service.events().list(calendarId=calendar['gcal_id'], timeMin=minDate, timeMax=maxDate).execute()
+                if resp['items'] and len(resp['items']) > 1:
+                #     print(f"Duplicates on {minDate}!")
+                    for itm in resp['items']:
+                        utils.remove_game(itm, calendar['gcal_id']) 
 
-            if existing_game: # if one exists, the datetime, location, home, away teams match up, continue the loop (skipping an insert)
-                if (rfcify(game['date'], game['time']) == existing_game['start']['dateTime'] and 
-                    matchup_format(game['away'], game['home']) == existing_game['summary'] and
-                    location_case(game['location']) == existing_game['location']):
-                    print(f"{game['away']} at {game['home']} game exists and is correct; not continuing work.")
-                else:
-                    print(f"{game['away']} at {game['home']}: something's different. Deleting existing one.")
-                    if remove_game(existing_game, calendar['gcal_id']): # else, delete the existing event for that day for that team
-                        add_game(game, calendar['gcal_id'])
-            else:
-                add_game(game, calendar['gcal_id'])
+                if existing_game: # if one exists, the datetime, location, home, away teams match up, continue the loop (skipping an insert)
+                    if (utils.is_same_game(existing_game, game)):
+                        print(f"{game['away']} at {game['home']} game exists and is correct; not continuing work.")
+                    else:
+                        print(f"{game['away']} at {game['home']}: something's different. Deleting existing one.")
+                        # if remove_game(existing_game, calendar['gcal_id']): # else, delete the existing event for that day for that team
+                        #     add_game(game, calendar['gcal_id'])
+                # else:
+                    # add_game(game, calendar['gcal_id'])
+            # cleanup any orphaned events on different dates
+            calEvents = utils.games_on_calendar(games[0]['date'], calendar['gcal_id']) #grab events from date of first remaining game
+            orphaned_games = utils.find_outdated_events(calEvents, games)
+            if orphaned_games and len(orphaned_games) > 0:
+                print('Found orphaned records!')
+                pprint(orphaned_games)
+                for orphan in orphaned_games:
+                    print('Found orphaned records: ', orphan['id']) # remove games from calEvents as we check their validity
+                    utils.remove_game(orphan, calendar['gcal_id'])
 
 
+# sys.exit('exiting early')
 
 # sampleGame = {
 #   'away': 'Harambe',
