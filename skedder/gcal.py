@@ -27,7 +27,12 @@ def main(opts):
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    
+    creds_file = 'credentials.json'
+    creds_path = creds_file
+    if opts.get('testing'):
+        creds_path = '../' + creds_file
+        token_path = '../' + token_path_dev
+
     # os.remove(token_path)
 
     if os.path.exists(token_path):
@@ -49,7 +54,7 @@ def main(opts):
         else:
             # print('Valid creds, starting flow')
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                creds_path, SCOPES)
             creds = flow.run_local_server()
         # Save the credentials for the next run
         with open(token_path, 'wb') as token:
