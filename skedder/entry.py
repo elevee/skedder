@@ -61,39 +61,41 @@ def lambda_handler(event, context):
     if utils.service:
         for calendar in calendars:
             games = parse_games(calendar['url'])
-            pprint(games)
-            for game in games: # For each (remaining) game:
-                # print(f"{game['away']} at {game['home']} already on cal? ", "Yes" if game_already_on_date(game, calendar['gcal_id']) else "No") # check calendar for existing event for that team on that day
+            if games and len(games) > 0:
+                pprint(games)
+                for game in games: # For each (remaining) game:
+                    # print(f"{game['away']} at {game['home']} already on cal? ", "Yes" if game_already_on_date(game, calendar['gcal_id']) else "No") # check calendar for existing event for that team on that day
+                    
+                    existing_game = utils.game_already_on_date(game, calendar['gcal_id'])
                 
-                existing_game = utils.game_already_on_date(game, calendar['gcal_id'])
-            
-                #cleanup events
-                minDate = utils.rfcify(game['date'])
-                maxDate = utils.add_hours(minDate, 24)
-                resp = utils.service.events().list(calendarId=calendar['gcal_id'], timeMin=minDate, timeMax=maxDate).execute()
-                if resp['items'] and len(resp['items']) > 1:
-                #     print(f"Duplicates on {minDate}!")
-                    for itm in resp['items']:
-                        utils.remove_game(itm, calendar['gcal_id']) 
+                    #cleanup events
+                    minDate = utils.rfcify(game['date'])
+                    maxDate = utils.add_hours(minDate, 24)
+                    resp = utils.service.events().list(calendarId=calendar['gcal_id'], timeMin=minDate, timeMax=maxDate).execute()
+                    if resp['items'] and len(resp['items']) > 1:
+                        for itm in resp['items']:
+                            utils.remove_game(itm, calendar['gcal_id']) 
 
-                if existing_game: # if one exists, the datetime, location, home, away teams match up, continue the loop (skipping an insert)
-                    if (utils.is_same_game(existing_game, game)):
-                        print(f"{game['away']} at {game['home']} game exists and is correct; not continuing work.")
-                    else:
-                        print(f"{game['away']} at {game['home']}: something's different. Deleting existing one.")
-                        # if remove_game(existing_game, calendar['gcal_id']): # else, delete the existing event for that day for that team
-                        #     add_game(game, calendar['gcal_id'])
-                # else:
-                    # add_game(game, calendar['gcal_id'])
-            # cleanup any orphaned events on different dates
-            calEvents = utils.games_on_calendar(games[0]['date'], calendar['gcal_id']) #grab events from date of first remaining game
-            orphaned_games = utils.find_outdated_events(calEvents, games)
-            if orphaned_games and len(orphaned_games) > 0:
-                print('Found orphaned records!')
-                pprint(orphaned_games)
-                for orphan in orphaned_games:
-                    print('Found orphaned records: ', orphan['id']) # remove games from calEvents as we check their validity
-                    utils.remove_game(orphan, calendar['gcal_id'])
+                    if existing_game: # if one exists, the datetime, location, home, away teams match up, continue the loop (skipping an insert)
+                        if (utils.is_same_game(existing_game, game)):
+                            print(f"{game['away']} at {game['home']} game exists and is correct; not continuing work.")
+                        else:
+                            print(f"{game['away']} at {game['home']}: something's different. Deleting existing one.")
+                            # if remove_game(existing_game, calendar['gcal_id']): # else, delete the existing event for that day for that team
+                            #     add_game(game, calendar['gcal_id'])
+                    # else:
+                        # add_game(game, calendar['gcal_id'])
+                # cleanup any orphaned events on different dates
+                calEvents = utils.games_on_calendar(games[0]['date'], calendar['gcal_id']) #grab events from date of first remaining game
+                orphaned_games = utils.find_outdated_events(calEvents, games)
+                if orphaned_games and len(orphaned_games) > 0:
+                    print('Found orphaned records!')
+                    pprint(orphaned_games)
+                    for orphan in orphaned_games:
+                        print('Orphaned record about to be removed: ', orphan['id']) # remove games from calEvents as we check their validity
+                        utils.remove_game(orphan, calendar['gcal_id'])
+            else:
+                print("No new games for ", calendar['team'])
 
 
 # sys.exit('exiting early')
