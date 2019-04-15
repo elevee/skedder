@@ -83,8 +83,8 @@ def lambda_handler(event, context):
                             print(f"{game['away']} at {game['home']}: something's different. Deleting existing one.")
                             # if remove_game(existing_game, calendar['gcal_id']): # else, delete the existing event for that day for that team
                             #     add_game(game, calendar['gcal_id'])
-                    # else:
-                        # add_game(game, calendar['gcal_id'])
+                    else:
+                        utils.add_game(game, calendar['gcal_id'])
                 # cleanup any orphaned events on different dates
                 calEvents = utils.games_on_calendar(games[0]['date'], calendar['gcal_id']) #grab events from date of first remaining game
                 orphaned_games = utils.find_outdated_events(calEvents, games)
