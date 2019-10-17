@@ -10,7 +10,7 @@ pip-delete-this-directory.txt
 .vscode
 env/
 package/
-skedder/tmp/token.pickle
-skedder/credentials.json
+**/token.pickle
+**/credentials.json
 skedder/config/config.json
 skedder/tests/seed.py
