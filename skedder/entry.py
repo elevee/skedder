@@ -15,7 +15,7 @@ import sys
 
 calendars = ConfigLoader().config() #load in team calendars
 
-def parse_games(teamName, url):
+def parse_games(teamName, url, seasonStartYear):
     def column_is(i):
         return {
             0: "date",
@@ -55,7 +55,8 @@ def parse_games(teamName, url):
                 date_array.append(str(
                     utils.getGameYear(
                         first_game_month,
-                        utils.getMonthNumber(date_array[0])
+                        utils.getMonthNumber(date_array[0]),
+                        seasonStartYear
                     )
                 ))
                 _date = ' '.join(date_array)
@@ -120,7 +121,7 @@ def parse_boxscore(game):
 def lambda_handler(event, context):
     if utils.service:
         for calendar in calendars:
-            games = parse_games(calendar['team'], calendar['url'])
+            games = parse_games(calendar['team'], calendar['url'], calendar['season_start_year'])
             if games and len(games) > 0:
                 pprint(games)
 

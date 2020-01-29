@@ -8,11 +8,13 @@ Place teams you want to track in `skedder/config/config.json`, along with their 
 [{
     "url": "http://toyota.frontline-connect.com/leagueschedule.cfm?fac=toyota&facid=1&Sched_id=910&teamid=5519&gtypeid=0&divisionid=0",
     "team": "Kings",
-    "gcal_id": "xxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com"
+    "gcal_id": "xxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com",
+    "season_start_year": 2020
 }, {
     "url": "http://toyota.frontline-connect.com/leagueschedule.cfm?fac=toyota&facid=1&Sched_id=938&teamid=5626&gtypeid=0&divisionid=0",
     "team": "Harambe",
-    "gcal_id": "xxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com"
+    "gcal_id": "xxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com",
+    "season_start_year": 2020
 }]
 ```
 

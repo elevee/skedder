@@ -88,9 +88,8 @@ def games_on_calendar(startDate, calId): # provided a start date, returns list o
 def getMonthNumber(monthAbbrev):
     return strptime(monthAbbrev, '%b').tm_mon
 
-def getGameYear(initialGameMonth, currentGameMonth):
-    current_year = datetime.now().year;
-    return current_year + 1 if initialGameMonth > currentGameMonth else current_year
+def getGameYear(initialGameMonth, currentGameMonth, seasonStartYear):
+    return seasonStartYear + 1 if initialGameMonth > currentGameMonth else seasonStartYear
 
 def is_same_game(calEvent, webEvent):
     return (rfcify(webEvent['date'], webEvent['time']) == calEvent['start']['dateTime'] and 
