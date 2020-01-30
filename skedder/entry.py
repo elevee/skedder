@@ -141,6 +141,7 @@ def lambda_handler(event, context):
                 
                     #cleanup events
                     minDate = utils.rfcify(game['date'])
+                    minDate = utils.add_hours(minDate, 3) #need to advance the min time a few hours to account for spillover from prev date's late night games
                     maxDate = utils.add_hours(minDate, 24)
                     resp = utils.service.events().list(calendarId=calendar['gcal_id'], timeMin=minDate, timeMax=maxDate).execute()
                     if resp['items'] and len(resp['items']) > 1:
@@ -159,6 +160,7 @@ def lambda_handler(event, context):
                             utils.add_game(game, calendar['gcal_id']) # add new game (old one is set to delete at end of func)
                     else:
                         utils.add_game(game, calendar['gcal_id'])
+                
                 # cleanup any orphaned events on different dates or with wrong info
                 calEvents = utils.games_on_calendar(games[0]['date'], calendar['gcal_id']) #grab events from date of first remaining game
                 orphaned_games = utils.find_outdated_events(calEvents, games)

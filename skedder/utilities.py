@@ -92,6 +92,16 @@ def getGameYear(initialGameMonth, currentGameMonth, seasonStartYear):
     return seasonStartYear + 1 if initialGameMonth > currentGameMonth else seasonStartYear
 
 def is_same_game(calEvent, webEvent):
+    # print('\n_________________\n')
+    # print("\t ok listen up. calEvent is ", calEvent, "\n");
+    # print("\t webEvent is ", webEvent, "\n");
+    # print(rfcify(webEvent['date'], webEvent['time']), 'should equal', calEvent['start']['dateTime'])
+    # print("\n", rfcify(webEvent['date'], webEvent['time']) == calEvent['start']['dateTime'], "\n")
+    # print(matchup_format(webEvent['away'], webEvent['home']), 'should equal', calEvent['summary'])
+    # print("\n", matchup_format(webEvent['away'], webEvent['home']) == calEvent['summary'], "\n")
+    # print(webEvent['location'], 'should equal', calEvent['location'])
+    # print("\n", webEvent['location'] == calEvent['location'], "\n")
+    # print('\n_________________\n')
     return (rfcify(webEvent['date'], webEvent['time']) == calEvent['start']['dateTime'] and 
         matchup_format(webEvent['away'], webEvent['home']) == calEvent['summary'] and
         webEvent['location'] == calEvent['location'])
