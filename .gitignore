@@ -14,3 +14,8 @@ package/
 **/credentials.json
 skedder/config/config.json
 skedder/tests/seed.py
+
+.Python
+bin/
+lib/
+include/
