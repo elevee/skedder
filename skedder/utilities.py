@@ -11,13 +11,12 @@ import sys
 
 #load gcal in and make it available
 service = main({
+    "development": True
     # "production": True
-    "testing": True
+    # "testing": True
 })
 
 def add_game(game, calId):
-    pprint('game is')
-    pprint(game)
     start_time = rfcify(game['date'], game['time'])
     tz = 'America/Los_Angeles'
     event = {
@@ -93,8 +92,12 @@ def getGameYear(initialGameMonth, currentGameMonth, seasonStartYear):
 
 def is_same_game(calEvent, webEvent):
     # print('\n_________________\n')
-    # print("\t ok listen up. calEvent is ", calEvent, "\n");
-    # print("\t webEvent is ", webEvent, "\n");
+    # print("\t ok listen up. calEvent is ") 
+    # pprint(calEvent)
+    # print("\n");
+    # print("\t webEvent is ") 
+    # pprint(webEvent)
+    # print("\n");
     # print(rfcify(webEvent['date'], webEvent['time']), 'should equal', calEvent['start']['dateTime'])
     # print("\n", rfcify(webEvent['date'], webEvent['time']) == calEvent['start']['dateTime'], "\n")
     # print(matchup_format(webEvent['away'], webEvent['home']), 'should equal', calEvent['summary'])
@@ -102,9 +105,15 @@ def is_same_game(calEvent, webEvent):
     # print(webEvent['location'], 'should equal', calEvent['location'])
     # print("\n", webEvent['location'] == calEvent['location'], "\n")
     # print('\n_________________\n')
-    return (rfcify(webEvent['date'], webEvent['time']) == calEvent['start']['dateTime'] and 
-        matchup_format(webEvent['away'], webEvent['home']) == calEvent['summary'] and
-        webEvent['location'] == calEvent['location'])
+ 
+    # if everything but time matches up
+    if matchup_format(webEvent['away'], webEvent['home']) == calEvent['summary'] and webEvent['location'] == calEvent['location']:
+        if webEvent['completed'] and not webEvent['time']: #if time wasn't parsed from web, but game is completed, assume it's the same game
+            return True
+        else:
+            return rfcify(webEvent['date'], webEvent['time']) == calEvent['start']['dateTime']
+    else:
+        return False
 
 def is_inside_games(calEvent, games):
     # todo: implement as a lambda function to find out if a calEvent is inside games array at all. Could delete right then.

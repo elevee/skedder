@@ -7,18 +7,21 @@ from pprint import pprint
 # import testing_ground as tg
 import utilities as utils
 from seed import games, calEvents
+pprint(sys)
 
+pprint(games)
+pprint(calEvents)
 
-class TestOutdatedEvents(unittest.TestCase):
+# class TestOutdatedEvents(unittest.TestCase):
 
-    def test_find_outdated_events(self):
-        # print(games)
-        # print(calEvents)
-        print('length before method: ', len(calEvents))
-        remaining = utils.find_outdated_events(calEvents['items'], games)
-        print('length after method: ', len(remaining))
-        self.assertEqual(len(remaining), 1)
-        pprint(remaining)
+#     def test_find_outdated_events(self):
+#         # print(games)
+#         # print(calEvents)
+#         print('length before method: ', len(calEvents))
+#         remaining = utils.find_outdated_events(calEvents['items'], games)
+#         print('length after method: ', len(remaining))
+#         self.assertEqual(len(remaining), 1)
+        # pprint(remaining)
 
 
 

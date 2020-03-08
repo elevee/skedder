@@ -29,9 +29,12 @@ def main(opts):
     # time.
     creds_file = 'credentials.json'
     creds_path = creds_file
-    if opts.get('testing'):
+    if opts.get('development'):
         creds_path = '../' + creds_file
         token_path = '../' + token_path_dev
+    if opts.get('testing'):
+        creds_path = '../../' + creds_file
+        token_path = '../../' + token_path_dev
 
     # os.remove(token_path)
 

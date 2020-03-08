@@ -105,14 +105,6 @@ def parse_boxscore(game):
     html.append(f"{game['home']}  {scores.find('span', class_='home').text} </h1>")
     html.append(f"More: <a href='{game['boxscore_url']}'>Gamesheet</a><br><br>")
     
-    # for li in scoring_summary.find_all('li'):
-    #     if li['class'] and 'interval_row' in li['class']:
-    #         # print(li.find('span').text.strip())
-    #         print('hi')
-    #         # html.append(f"<h4>{li.find('span').text} Period</h4>")
-    #     if 'scoring_info' in li['class']:
-    #         print('score!')
-    
     boxscore['description'] = ''.join(html)
 
     #we return the time (which is no longer available on the sked), and the description, a long string with final score and link to gamesheet
@@ -121,15 +113,15 @@ def parse_boxscore(game):
 def lambda_handler(event, context):
     if utils.service:
         for calendar in calendars:
+            # if calendar['team'] == 'Harambe':
             games = parse_games(calendar['team'], calendar['url'], calendar['season_start_year'])
             if games and len(games) > 0:
-                pprint(games)
 
                 for game in games: # For each (remaining) game:
                     game_string = (game['opponent'] if game['isHome'] else calendar['team']) + \
                         " at " + \
                         (calendar['team'] if game['isHome'] else game['opponent'])
-                    # print(game_string + " already on cal? " + ("Yes" if utils.game_already_on_date(game, calendar['gcal_id']) else "No")) # check calendar for existing event for that team on that day
+                    print(game_string + " already on cal? " + ("Yes" if utils.game_already_on_date(game, calendar['gcal_id']) else "No")) # check calendar for existing event for that team on that day
                     description = None
 
                     if 'completed' in game and 'boxscore_url' in game:
@@ -138,8 +130,15 @@ def lambda_handler(event, context):
                         game['description'] = boxscore_obj['description']
 
                     existing_game = utils.game_already_on_date(game, calendar['gcal_id'])
-                
-                    #cleanup events
+                    # print('game is') 
+                    # print(game['away'], ' @ ', game['home'], '\n')
+                    # print(game['date'], ' ', game['time'])
+                    # print('existing_game is') 
+                    # pprint(existing_game['summary'])
+                    # pprint(existing_game['start'])
+
+
+                    # cleanup events
                     minDate = utils.rfcify(game['date'])
                     minDate = utils.add_hours(minDate, 3) #need to advance the min time a few hours to account for spillover from prev date's late night games
                     maxDate = utils.add_hours(minDate, 24)
@@ -161,11 +160,13 @@ def lambda_handler(event, context):
                     else:
                         utils.add_game(game, calendar['gcal_id'])
                 
+                    # print('__________________________________')
+
                 # cleanup any orphaned events on different dates or with wrong info
                 calEvents = utils.games_on_calendar(games[0]['date'], calendar['gcal_id']) #grab events from date of first remaining game
                 orphaned_games = utils.find_outdated_events(calEvents, games)
                 if orphaned_games and len(orphaned_games) > 0:
-                    print('Found orphaned records!')
+                    print('Found ', len(orphaned_games) , ' orphaned record(s)!')
                     pprint(orphaned_games)
                     for orphan in orphaned_games:
                         print('Orphaned record about to be removed: ', orphan['id']) # remove games from calEvents as we check their validity
@@ -175,14 +176,6 @@ def lambda_handler(event, context):
 
 
 # sys.exit('exiting early')
-
-# sampleGame = {
-#   'away': 'Harambe',
-#   'date': '02-26-2019',
-#   'home': 'Bad Beat',
-#   'location': 'OLYMPIC',
-#   'time': '09:00 PM'
-# }
 
 
 # deleting_obj = {
